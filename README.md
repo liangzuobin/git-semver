@@ -7,7 +7,7 @@ go get -u github.com/liangzuobin/git-semver
 
 ### Usage
 
-A `-m` or `--message` is optional to specified a git tag message.
+A `-m` or `--message` is optional to specify a git tag message.
 
 Current semver, acutally it finds the max(semver) and returns `v0.0.0` if no semver found.
 ~~~
