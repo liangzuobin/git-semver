@@ -63,7 +63,8 @@ func TestSortedGitTags(t *testing.T) {
 }
 
 func TestAddGitTag(t *testing.T) {
-	sv, err := currentversiontag()
+	ctx := context.Background()
+	sv, err := currentversiontag(ctx)
 	assert.NoError(t, err)
 
 	sv.patch++
