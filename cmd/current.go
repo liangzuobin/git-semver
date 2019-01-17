@@ -22,29 +22,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// minorCmd represents the minor command
-var minorCmd = &cobra.Command{
-	Use:   "minor",
-	Short: "generate a minor version tag",
+// currentCmd represents the current command
+var currentCmd = &cobra.Command{
+	Use:   "current",
+	Short: "return current semver",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		sv, err := currentversiontag(ctx)
+		ver, err := currentversiontag(ctx)
 		if err != nil {
-			fmt.Printf("get current semver failed: %v \n", err)
+			fmt.Printf("%v", err)
 			return
 		}
-		sv.minor++
-		sv.patch = 0
-		if err := addgittag(ctx, sv); err != nil {
-			fmt.Printf("add new tag %s failed: %v", sv.tag(), err)
-			return
-		}
-		fmt.Printf("current version: %s", sv.tag())
+		fmt.Printf("current semver %s", ver.tag())
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(minorCmd)
+	rootCmd.AddCommand(currentCmd)
 }

@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/liangzuobin/gitsemver/cmd"
+import "github.com/liangzuobin/git-semver/cmd"
 
 func main() {
 	cmd.Execute()
