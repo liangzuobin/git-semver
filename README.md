@@ -9,13 +9,13 @@ go get -u github.com/liangzuobin/git-semver
 
 A `-m` or `--message` is optional to specified a git tag message.
 
-Current semver
+Current semver, acutally it finds the max(semver) and returns `v0.0.0` if no semver found.
 ~~~
 ➜  git-semver master ✗ git semver current
 current semver v2.0.0
 ~~~
 
-Patch
+Patch, find current(max) semver and add its patch +1.
 ~~~
 ➜  git-semver master ✗ git semver patch
 current version: v2.0.1, message: v2.0.1
