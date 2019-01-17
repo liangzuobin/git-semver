@@ -15,10 +15,6 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
-	"time"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,17 +24,6 @@ var currentCmd = &cobra.Command{
 	Short: "return current semver",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		ver, err := currentversiontag(ctx)
-		if err != nil {
-			fmt.Printf("%v", err)
-			return
-		}
-		fmt.Printf("current semver %s", ver.tag())
+		subcmdrun(current)
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(currentCmd)
 }

@@ -18,7 +18,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,11 +25,26 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
-var cfgFile string
+type action = uint8
+
+const (
+	current action = iota
+	major
+	minor
+	patch
+)
+
+var msg string
+
+func init() {
+	rootCmd.AddCommand(currentCmd, majorCmd, minorCmd, patchCmd)
+	rootCmd.PersistentFlags().StringVarP(&msg, "message", "m", "", "optional git tag message.")
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -52,15 +66,32 @@ func Execute() {
 }
 
 type semver struct {
-	prefix []byte
+	prefix string
 	major  int
 	minor  int
 	patch  int
-	suffix []byte
+	suffix string
 }
 
 func (s semver) tag() string {
-	return fmt.Sprintf("%s%d.%d.%d%s", string(s.prefix), s.major, s.minor, s.patch, string(s.suffix))
+	return fmt.Sprintf("%s%d.%d.%d%s", s.prefix, s.major, s.minor, s.patch, s.suffix)
+}
+
+func (s *semver) newtag(act action) {
+	switch act {
+	case patch:
+		s.patch++
+	case minor:
+		s.minor++
+		s.patch = 0
+	case major:
+		s.major++
+		s.minor = 0
+		s.patch = 0
+	default:
+		fmt.Printf("unknown action %v \n", act)
+		os.Exit(1)
+	}
 }
 
 type semvers []semver
@@ -81,7 +112,6 @@ func (s semvers) Less(i, j int) (b bool) {
 }
 
 var reg = regexp.MustCompile(`(\D*?)(\d*?)\.(\d*?)\.(\d*)(\D*)`)
-var errnotmatch = errors.New("not match")
 
 func parsesemver(tag []byte) (semver, error) {
 	s := reg.FindSubmatch(tag)
@@ -97,7 +127,7 @@ func parsesemver(tag []byte) (semver, error) {
 	if err != nil {
 		return semver{}, fmt.Errorf("parse patch %s failed, err: %v", string(s[4]), err)
 	}
-	return semver{prefix: s[1], major: m, minor: n, patch: p, suffix: s[5]}, nil
+	return semver{prefix: string(s[1]), major: m, minor: n, patch: p, suffix: string(s[5])}, nil
 }
 
 func currentversiontag(ctx context.Context) (semver, error) {
@@ -139,15 +169,39 @@ func currenttag(ctx context.Context, r io.Reader) (semver, error) {
 		}
 	}
 	if len(svs) == 0 {
-		return semver{prefix: []byte("v"), major: 0, minor: 0, patch: 0, suffix: []byte("")}, nil
+		return semver{prefix: "v", major: 0, minor: 0, patch: 0, suffix: ""}, nil
 	}
 	sort.Sort(semvers(svs))
 	return svs[0], nil
 }
 
-func addgittag(ctx context.Context, sv semver) error {
-	cmd := exec.CommandContext(ctx, "git", "tag", "-a", sv.tag(), "-m", sv.tag()) // FIXME(liangzuobin) use a real message in args?
-	// var out bytes.Buffer
-	// cmd.Stdout = &out
+func addgittag(ctx context.Context, sv semver, msg string) error {
+	cmd := exec.CommandContext(ctx, "git", "tag", "-a", sv.tag(), "-m", msg) // FIXME(liangzuobin) use a real message in args?
 	return cmd.Run()
+}
+
+func subcmdrun(act action) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	sv, err := currentversiontag(ctx)
+	if err != nil {
+		fmt.Printf("get current semver failed: %v \n", err)
+		os.Exit(1)
+	}
+
+	if act == current {
+		fmt.Printf("current version: %s", sv.tag())
+		return
+	}
+
+	sv.newtag(act)
+
+	if len(msg) == 0 {
+		msg = sv.tag()
+	}
+	if err := addgittag(ctx, sv, msg); err != nil {
+		fmt.Printf("add new tag %s failed: %v", sv.tag(), err)
+		os.Exit(1)
+	}
+	fmt.Printf("current version: %s, message: %s", sv.tag(), msg)
 }

@@ -15,10 +15,6 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
-	"time"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,24 +24,6 @@ var majorCmd = &cobra.Command{
 	Short: "generate a major version tag",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		sv, err := currentversiontag(ctx)
-		if err != nil {
-			fmt.Printf("get current semver failed: %v \n", err)
-			return
-		}
-		sv.major++
-		sv.minor = 0
-		sv.patch = 0
-		if err := addgittag(ctx, sv); err != nil {
-			fmt.Printf("add new tag %s failed: %v", sv.tag(), err)
-			return
-		}
-		fmt.Printf("current version: %s", sv.tag())
+		subcmdrun(major)
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(majorCmd)
 }

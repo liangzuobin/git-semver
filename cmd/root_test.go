@@ -68,6 +68,25 @@ func TestAddGitTag(t *testing.T) {
 	assert.NoError(t, err)
 
 	sv.patch++
-	err = addgittag(context.Background(), sv)
+	err = addgittag(context.Background(), sv, "test")
 	assert.NoError(t, err)
+}
+
+func TestNewTag(t *testing.T) {
+	sv := semver{major: 1, minor: 1, patch: 1}
+
+	sv.newtag(patch)
+	assert.Equal(t, 1, sv.major)
+	assert.Equal(t, 1, sv.minor)
+	assert.Equal(t, 2, sv.patch)
+
+	sv.newtag(minor)
+	assert.Equal(t, 1, sv.major)
+	assert.Equal(t, 2, sv.minor)
+	assert.Equal(t, 0, sv.patch)
+
+	sv.newtag(major)
+	assert.Equal(t, 2, sv.major)
+	assert.Equal(t, 0, sv.minor)
+	assert.Equal(t, 0, sv.patch)
 }
