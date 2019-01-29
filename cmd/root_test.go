@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"bufio"
 	"context"
 	"sort"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,26 +38,6 @@ func TestRegExAndSort(t *testing.T) {
 	assert.Equal(t, "2.1.1", svs[3].tag())
 	assert.Equal(t, "2.0.1", svs[4].tag())
 	assert.Equal(t, "v0.0.1", svs[5].tag())
-}
-
-func TestCurrentTag(t *testing.T) {
-	ctx := context.Background()
-	r := strings.NewReader(`
-v0.0.1	
-2.0.1
-4.0.4rc
-	`)
-	sv, err := currenttag(ctx, r)
-	assert.NoError(t, err)
-	assert.Equal(t, "4.0.4rc", sv.tag())
-}
-
-func TestSortedGitTags(t *testing.T) {
-	ctx := context.Background()
-	r, err := gittags(ctx)
-	assert.NoError(t, err)
-	rd := bufio.NewReader(r)
-	assert.True(t, rd.Size() > 0)
 }
 
 func TestAddGitTag(t *testing.T) {

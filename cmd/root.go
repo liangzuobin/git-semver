@@ -16,10 +16,8 @@ package cmd
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"regexp"
@@ -105,8 +103,8 @@ func (s semvers) Less(i, j int) (b bool) {
 	if s[i].major != s[j].major {
 		return s[i].major > s[j].major
 	}
-	if s[i].minor != s[j].major {
-		return s[i].minor > s[j].major
+	if s[i].minor != s[j].minor {
+		return s[i].minor > s[j].minor
 	}
 	return s[i].patch > s[j].patch
 }
@@ -131,35 +129,19 @@ func parsesemver(tag []byte) (semver, error) {
 }
 
 func currentversiontag(ctx context.Context) (semver, error) {
-	r, err := gittags(ctx)
+	cmd := exec.CommandContext(ctx, "git", "tag", "--sort=v:refname")
+	rd, err := cmd.StdoutPipe()
 	if err != nil {
 		return semver{}, err
 	}
-	return currenttag(ctx, r)
-}
-
-func gittags(ctx context.Context) (io.Reader, error) {
-	cmd := exec.CommandContext(ctx, "git", "tag", "--sort=v:refname")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	if err := cmd.Run(); err != nil {
-		return nil, err
+	if err := cmd.Start(); err != nil {
+		return semver{}, err
 	}
-	return &out, nil
-}
 
-func currenttag(ctx context.Context, r io.Reader) (semver, error) {
-	rd := bufio.NewReader(r)
+	sc := bufio.NewScanner(rd)
 	svs := make([]semver, 0, 10)
-	for {
-		b, _, err := rd.ReadLine()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return semver{}, err
-		}
-		if len(b) > 0 && reg.Match(b) {
+	for sc.Scan() {
+		if b := sc.Bytes(); len(b) > 0 && reg.Match(b) {
 			sv, err := parsesemver(b)
 			if err != nil {
 				fmt.Printf("tag %s not valid, will be ignored, err: %v", string(b), err)
@@ -167,6 +149,13 @@ func currenttag(ctx context.Context, r io.Reader) (semver, error) {
 			}
 			svs = append(svs, sv)
 		}
+	}
+	if err := sc.Err(); err != nil {
+		return semver{}, err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return semver{}, err
 	}
 	if len(svs) == 0 {
 		return semver{prefix: "v", major: 0, minor: 0, patch: 0, suffix: ""}, nil
