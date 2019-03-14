@@ -169,26 +169,29 @@ func addgittag(ctx context.Context, sv semver, msg string) error {
 
 func subcmdrun(act action) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
 	sv, err := currentversiontag(ctx)
 	if err != nil {
 		fmt.Printf("get current semver failed: %v \n", err)
+		cancel()
 		os.Exit(1)
 	}
 
 	if act == current {
 		fmt.Printf("current version: %s", sv.tag())
+		cancel()
 		return
 	}
 
 	sv.newtag(act)
 
-	if len(msg) == 0 {
+	if msg == "" {
 		msg = sv.tag()
 	}
 	if err := addgittag(ctx, sv, msg); err != nil {
 		fmt.Printf("add new tag %s failed: %v", sv.tag(), err)
+		cancel()
 		os.Exit(1)
 	}
 	fmt.Printf("current version: %s, message: %s", sv.tag(), msg)
+	cancel()
 }
