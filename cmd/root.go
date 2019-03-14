@@ -46,12 +46,10 @@ func init() {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gitsemver",
-	Short: "git semver kit",
-	Long:  `git sub command to generate semver tags`,
-	// Run: func(cmd *cobra.Command, args []string) {
-	// 	fmt.Println("root called")
-	// },
+	Use:     "gitsemver",
+	Short:   "git semver kit",
+	Long:    `git sub command to generate semver tags`,
+	Aliases: []string{"sv"},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

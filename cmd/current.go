@@ -20,9 +20,10 @@ import (
 
 // currentCmd represents the current command
 var currentCmd = &cobra.Command{
-	Use:   "current",
-	Short: "return current semver",
-	Long:  "",
+	Use:     "current",
+	Short:   "return current semver",
+	Long:    "",
+	Aliases: []string{"c"},
 	Run: func(cmd *cobra.Command, args []string) {
 		subcmdrun(current)
 	},

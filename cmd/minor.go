@@ -20,9 +20,10 @@ import (
 
 // minorCmd represents the minor command
 var minorCmd = &cobra.Command{
-	Use:   "minor",
-	Short: "generate a minor version tag",
-	Long:  "",
+	Use:     "minor",
+	Short:   "generate a minor version tag",
+	Long:    "",
+	Aliases: []string{"n"},
 	Run: func(cmd *cobra.Command, args []string) {
 		subcmdrun(minor)
 	},

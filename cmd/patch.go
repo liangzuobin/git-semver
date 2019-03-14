@@ -20,9 +20,10 @@ import (
 
 // patchCmd represents the patch command
 var patchCmd = &cobra.Command{
-	Use:   "patch",
-	Short: "generate a patch version tag",
-	Long:  "",
+	Use:     "patch",
+	Short:   "generate a patch version tag",
+	Long:    "",
+	Aliases: []string{"p"},
 	Run: func(cmd *cobra.Command, args []string) {
 		subcmdrun(patch)
 	},

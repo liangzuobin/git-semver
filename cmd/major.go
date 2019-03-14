@@ -20,9 +20,10 @@ import (
 
 // majorCmd represents the major command
 var majorCmd = &cobra.Command{
-	Use:   "major",
-	Short: "generate a major version tag",
-	Long:  "",
+	Use:     "major",
+	Short:   "generate a major version tag",
+	Long:    "",
+	Aliases: []string{"j"},
 	Run: func(cmd *cobra.Command, args []string) {
 		subcmdrun(major)
 	},
